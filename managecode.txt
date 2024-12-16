@@ -1,0 +1,335 @@
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ManagerPannel/models.py ---
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
+import pgtrigger
+
+from AdminPannel.models import User
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class Brand(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class Product(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
+    article = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image = models.ImageField(upload_to='KorShop/media', blank=True, null=True)
+    quantity = models.PositiveIntegerField()
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        triggers = [
+            pgtrigger.SoftDelete(name='soft_delete', field='is_active')
+        ]
+
+    def __str__(self):
+        return self.name
+
+class Review(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    rating = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5)
+        ]
+    )
+    comment = models.TextField()
+    review_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Review by {self.user.username} on {self.product.name}'
+
+class Stock(models.Model):
+    cell_number = models.CharField(max_length=50)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Stock cell {self.cell_number} for {self.product.name}'
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ManagerPannel/apps.py ---
+from django.apps import AppConfig
+
+
+class ManagerpannelConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'ManagerPannel'
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ManagerPannel/forms.py ---
+from django import forms
+from .models import Brand, Category, Product, Stock
+
+class BrandForm(forms.ModelForm):
+    class Meta:
+        model = Brand
+        fields = ['name']
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name']
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['category', 'brand', 'name', 'description', 'price', 'image', 'quantity']
+
+class StockForm(forms.ModelForm):
+    class Meta:
+        model = Stock
+        fields = ['cell_number', 'product']
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ManagerPannel/admin.py ---
+from django.contrib import admin
+from .models import Category, Brand, Product, Review, Stock
+
+# Register your models here.
+admin.site.register(Category)
+admin.site.register(Brand)
+admin.site.register(Product)
+admin.site.register(Review)
+admin.site.register(Stock)
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ManagerPannel/routing.py ---
+from django.urls import path, include
+
+from ManagerPannel.views import (
+    CategoryCreateView, CategoryListView, ProductListView, StockListView, BrandListView, ProductUpdateView, ProductCreateView, BrandCreateView, BrandUpdateView,
+    BrandDeleteView, StockCreateView, StockUpdateView, StockDeleteView, CategoryUpdateView,
+    CategoryDeleteView, ProductDeleteView
+)
+
+urlpatterns = [
+    path('category_create/', CategoryCreateView.as_view(), name='category_create'),
+    path('category_list/', CategoryListView.as_view(), name='category_list'),
+    path('category_update/<int:pk>/', CategoryUpdateView.as_view(), name='category_update'),
+    path('category_delete/<int:pk>/', CategoryDeleteView.as_view(), name='category_delete'),
+
+    path('product_list/', ProductListView.as_view(), name='product_list'),
+    # path('product_detail/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
+    path('product_create/', ProductCreateView.as_view(), name='product_create'),
+    path('product_update/<int:pk>/', ProductUpdateView.as_view(), name='product_update'),
+    path('product_delete/<int:pk>/', ProductDeleteView.as_view(), name='product_delete'),
+
+    path('stock_list/', StockListView.as_view(), name='stock_list'),
+    path('stock_create/', StockCreateView.as_view(), name='stock_create'),
+    path('stock_update/<int:pk>/', StockUpdateView.as_view(), name='stock_update'),
+    path('stock_delete/<int:pk>/', StockDeleteView.as_view(), name='stock_delete'),
+
+    path('brand_list/', BrandListView.as_view(), name='brand_list'),
+    path('brand_create/', BrandCreateView.as_view(), name='brand_create'),
+    path('brand_update/<int:pk>/', BrandUpdateView.as_view(), name='brand_update'),
+    path('brand_delete/<int:pk>/', BrandDeleteView.as_view(), name='brand_delete'),
+]
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ManagerPannel/tests.py ---
+from django.test import TestCase
+
+# Create your tests here.
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ManagerPannel/views.py ---
+import uuid
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import CreateView, ListView, UpdateView, DeleteView, DetailView
+from rest_framework.reverse import reverse_lazy
+
+from .models import Brand, Category, Product, Stock
+from django.db.models import Q
+from .forms import BrandForm, CategoryForm, ProductForm, StockForm
+
+
+# --------- List View ---------#
+
+class CategoryListView(ListView):
+    model = Category
+    template_name = "CRUD/category_list.html"
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Category.objects.filter(name__icontains=query)
+        return super().get_queryset()
+
+class BrandListView(ListView):
+    model = Brand
+    template_name = "CRUD/brand_list.html"
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Brand.objects.filter(name__icontains=query)
+        return super().get_queryset()
+
+ # --------- Create View ---------#
+
+class CategoryCreateView(CreateView):
+    model = Category
+    form_class = CategoryForm
+    success_url = reverse_lazy('category_list')
+
+class BrandCreateView(CreateView):
+    model = Brand
+    template_name = "CRUD/create_form.html"
+    form_class = BrandForm
+    success_url = reverse_lazy('brand_list')
+
+
+
+
+ # --------- Update View ---------#
+
+class BrandUpdateView(UpdateView):
+    model = Brand
+    template_name = "CRUD/create_form.html"
+    form_class = BrandForm
+    success_url = reverse_lazy('brand_list')
+
+class CategoryUpdateView(UpdateView):
+    model = Category
+    form_class = CategoryForm
+    success_url = reverse_lazy('category_list')
+
+
+class StockListView(ListView):
+    model = Stock
+    template_name = "CRUD/stock_list.html"
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Stock.objects.filter(product__name__icontains=query)
+        return super().get_queryset()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['products'] = Product.objects.all()
+        return context
+
+
+class StockCreateView(CreateView):
+    model = Stock
+    template_name = "CRUD/create_form.html"
+    form_class = StockForm
+    success_url = reverse_lazy('stock_list')
+
+class StockUpdateView(UpdateView):
+    model = Stock
+    template_name = "CRUD/create_form.html"
+    form_class = StockForm
+    success_url = reverse_lazy('stock_list')
+
+class StockDeleteView(DeleteView):
+    model = Stock
+    success_url = reverse_lazy('stock_list')
+
+ # --------- Delete View ---------#
+
+class CategoryDeleteView(DeleteView):
+    model = Category
+    success_url = reverse_lazy('category_list')
+
+class BrandDeleteView(DeleteView):
+    model = Brand
+    success_url = reverse_lazy('brand_list')
+
+
+
+ # --------- Detail View ---------#
+
+def generate_article():
+    return str(uuid.uuid4())[:8]
+
+
+class ProductListView(ListView):
+    model = Product
+    template_name = "CRUD/product_list.html"
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        category_id = self.request.GET.get('category')
+        brand_ids = self.request.GET.getlist('brands')  # Получаем список выбранных брендов
+        price_min = self.request.GET.get('price_min')  # Минимальная цена
+        price_max = self.request.GET.get('price_max')  # Максимальная цена
+
+        queryset = Product.objects.all()
+
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        if brand_ids:
+            queryset = queryset.filter(brand_id__in=brand_ids)
+        if query:
+            queryset = queryset.filter(name__icontains=query)
+        if price_min:
+            queryset = queryset.filter(price__gte=price_min)
+        if price_max:
+            queryset = queryset.filter(price__lte=price_max)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['brands'] = Brand.objects.all()
+        context['categories'] = Category.objects.all()
+        return context
+
+
+
+class ProductCreateView(CreateView):
+    model = Product
+    form_class = ProductForm
+    success_url = reverse_lazy('product_list')
+    template_name = "CRUD/create_form.html"
+
+    def form_valid(self, form):
+        form.instance.article = generate_article()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['brands'] = Brand.objects.all()
+        context['categories'] = Category.objects.all()
+        return context
+
+class ProductUpdateView(UpdateView):
+    model = Product
+    form_class = ProductForm
+    success_url = reverse_lazy('product_list')
+    template_name = "CRUD/create_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['brands'] = Brand.objects.all()
+        context['categories'] = Category.objects.all()
+        return context
+
+class ProductDeleteView(DeleteView):
+    model = Product
+    success_url = reverse_lazy('product_list')
+
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = 'CRUD/product_detail.html'
+
+

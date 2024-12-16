@@ -1,0 +1,115 @@
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ShopPart/models.py ---
+from django.db import models
+from django.conf import settings
+from ManagerPannel.models import  Product
+from AdminPannel.models import User
+import pgtrigger
+
+class Status(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class DeliveryType(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Country(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Address(models.Model):
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    house_number = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f'{self.street}, {self.city}, {self.country.name}'
+
+
+class Cart(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+
+
+class Order(models.Model):
+    order_number = models.CharField(max_length=100)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    order_date = models.DateTimeField(auto_now_add=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.ForeignKey(Status, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        triggers = [
+            pgtrigger.SoftDelete(name='soft_delete', field='is_active')
+        ]
+
+
+class Delivery(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE)
+    delivery_date = models.DateTimeField()
+    delivery_time = models.TimeField()
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)
+    delivery_type = models.ForeignKey(DeliveryType, on_delete=models.CASCADE)
+    comments = models.TextField(blank=True, null=True)
+
+class Payment(models.Model):
+    PAY_CHOICES = (
+        ('Наличными','Наличными'),
+        ('Картой','Картой'),
+    )
+    order = models.OneToOneField(Order, on_delete=models.CASCADE)
+    payment_date = models.DateTimeField(auto_now_add=True)
+    payment_method = models.CharField(max_length=100, choices=PAY_CHOICES)
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ShopPart/apps.py ---
+from django.apps import AppConfig
+
+
+class ShoppartConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'ShopPart'
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ShopPart/admin.py ---
+from django.contrib import admin
+
+from ShopPart.models import Status, Delivery, Country, Address, Cart, Order, DeliveryType, Payment
+
+# Register your models here.
+
+admin.site.register(Status)
+admin.site.register(Delivery)
+admin.site.register(Country)
+admin.site.register(Address)
+admin.site.register(Cart)
+admin.site.register(Order)
+admin.site.register(DeliveryType)
+admin.site.register(Payment)
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ShopPart/tests.py ---
+from django.test import TestCase
+
+# Create your tests here.
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/ShopPart/views.py ---
+from django.shortcuts import render
+
+# Create your views here.
+
+

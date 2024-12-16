@@ -1,0 +1,1203 @@
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/base.html ---
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .header {
+            background-color: #212529; /* Цвет фона */
+            color: white; /* Цвет текста */
+            padding: 15px; /* Отступы */
+        }
+
+        .header .logo {
+            font-size: 24px; /* Размер шрифта для логотипа */
+        }
+
+        .header .nav-link {
+            color: white; /* Цвет ссылок */
+        }
+    </style>
+    <title></title>
+    {% block style %}
+    {% endblock %}
+</head>
+<body>
+{% block header %}
+    {% include 'inc/_header.html' %}
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+{% block modal %}
+    {% include "inc/_modal.html" %}
+{% endblock %}
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/user_created.html ---
+<!-- user_created.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Пользователь создан успешно!</h1>
+{% comment %}        <p><strong>Имя:</strong> {{ user.first_name }}</p>
+        <p><strong>Фамилия:</strong> {{ user.last_name }}</p>{% endcomment %}
+        <p><strong>Логин:</strong> {{ username }}</p>
+        <p><strong>Пароль:</strong> {{ password }}</p>
+        <p><strong>Email:</strong> {{ email }}</p>
+        <a href="{% url 'create_user' %}" class="btn btn-primary">Создать еще одного пользователя</a>
+    </div>
+{% endblock %}
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/create_user.html ---
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Создание нового пользователя</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="first_name">Имя:</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Фамилия:</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Роль:</label>
+                <select class="form-control" id="role" name="role" required>
+                    {% for role in roles %}
+                        <option value="{{ role.id }}">{{ role.role_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Создать пользователя</button>
+        </form>
+    </div>
+    
+{% endblock %}
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/system_settings_page.html ---
+{% extends 'base.html' %}
+{% block content %}
+    
+{% endblock %}
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/logs.html ---
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр логов</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Просмотр логов</h1>
+        
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/user_list.html ---
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <h1>Список пользователей</h1>
+
+        <form method="GET" class="mb-3">
+            <input type="text" name="q" placeholder="Поиск..." class="form-control" value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-primary mt-2">Поиск</button>
+        </form>
+
+        <div class="mb-3">
+            {% for role in roles %}
+                <a href="?role={{ role }}" class="btn btn-secondary mr-2">{{ role }}</a>
+            {% endfor %}
+            <a href="?" class="btn btn-secondary">Сбросить фильтр</a>
+        </div>
+        <a href="{% url 'create_user' %}" class="btn btn-secondary mt-2 mb-2">Добавить нового пользователя</a>
+
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Юзернейм</th>
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th>Роль</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr {% if not user.is_active %}style="color: red;"{% endif %}>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        <button class="btn btn-info" data-toggle="modal" data-target="#userModal"
+                                data-username="{{ user.username }}" data-role="{{ user.role.role_name }}"
+                                data-user-id="{{ user.id }}">Изменить роль
+                        </button>
+                        <a href="{% url 'block_user' user.id %}" class="btn btn-warning">Заблокировать</a>
+                        <a href="{% url 'unblock_user' user.id %}" class="btn btn-success">Разблокировать</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="userModalLabel">Изменение роли пользователя</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Юзернейм:</strong> <span id="modal-username"></span></p>
+                        <p><strong>Текущая роль:</strong> <span id="modal-role"></span></p>
+
+                        <form id="roleChangeForm" method="POST" action="{% url 'change_user_role' %}">
+                            {% csrf_token %}
+                            <input type="hidden" id="modal-user-id" name="user_id">
+                            <div class="form-group">
+                                <label for="roleSelect">Выберите новую роль:</label>
+                                <select class="form-control" id="roleSelect" name="role">
+                                    {% for role in roles %}
+                                        <option value="{{ role.id }}">{{ role.role_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Сменить роль</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $('#userModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var username = button.data('username');
+            var role = button.data('role');
+            var userId = button.data('user-id');
+
+            var modal = $(this);
+            modal.find('#modal-username').text(username);
+            modal.find('#modal-role').text(role);
+            modal.find('#modal-user-id').val(userId);
+        });
+    </script>
+{% endblock %}
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/registration/profile.html ---
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="">
+        <div class="container rounded mt-5 mb-5">
+            <div class="row">
+                <form method="post" enctype="multipart/form-data" class="row">
+                    {% csrf_token %}
+                    <div class="col-md-4 border-right d-flex align-items-center justify-content-center">
+                        <div class="d-flex flex-column align-items-center justify-content-center text-center p-3 py-5">
+                            <div class="user_img">
+                                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" width="250" height="250">
+                            </div>
+                            <span class="text-black-50 mt-3">{{ user.first_name }} {{ user.last_name }}</span>
+                            <span class="text-black-50">{{ user.email }}</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-3 py-5">
+                            <div class="d-flex justify-content-center align-items-center mb-3">
+                                <h4 class="text_font">настройки профиля</h4>
+                            </div>
+                            <div class="row mt-5">
+                                <div class="col-md-6"><label class="labels">имя</label>{{ form.first_name }}</div>
+                                <div class="col-md-6"><label class="labels">фамилия</label>{{ form.last_name }}</div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12"><label class="labels">отчество</label>{{ form.patronymic }}</div>
+                                <div class="col-md-12"><label class="labels">Email</label>{{ form.email }}</div>
+                                <div class="col-md-12"><label class="labels">Никнейм</label>{{ form.username }}</div>
+                                <div class="col-md-12"><label class="labels">Фото профиля</label>{{ form.profile_picture }}</div>
+                            </div>
+                            <div class="mt-5 text-center">
+                                <button class="btn btn-success" type="submit">Сохранить</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/registration/login.html ---
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+<style>
+    body {
+  margin: 0;
+  padding: 0;
+  background-color: #17a2b8;
+  height: 100vh;
+}
+#login .container #login-row #login-column #login-box {
+  margin-top: 120px;
+  max-width: 600px;
+  height: 320px;
+  border: 1px solid #9C9C9C;
+  background-color: #EAEAEA;
+}
+#login .container #login-row #login-column #login-box #login-form {
+  padding: 20px;
+}
+#login .container #login-row #login-column #login-box #login-form #register-link {
+  margin-top: -85px;
+}
+</style>
+<body>
+
+    <div id="login">
+        <h3 class="text-center text-white pt-5">Login form</h3>
+        <div class="container">
+            <div id="login-row" class="row justify-content-center align-items-center">
+                <div id="login-column" class="col-md-6">
+                    <div id="login-box" class="col-md-12">
+                        <form id="login-form" class="form" action="" method="post">
+                              {% csrf_token %}
+                            <h3 class="text-center text-info">Login</h3>
+                            <div class="form-group">
+                                <label for="username" class="text-info">Username:</label><br>
+{#                                <input type="text" name="username" id="username" class="form-control">#}
+                                {{ form.username }}
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="text-info">Password:</label><br>
+{#                                <input type="text" name="password" id="password" class="form-control">#}
+                                      {{ form.password }}
+                            </div>
+                            <div class="form-group">
+                                <input type="submit" name="submit" class="btn btn-info btn-md" value="submit">
+                            </div>
+                            <div id="register-link" class="text-right">
+                                <a href="{% url 'signup' %}" class="text-info">зарегистрироваться</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/registration/registration.html ---
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <title>Регистрация</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #17a2b8;
+            height: 100vh;
+        }
+        #registration .container #registration-row #registration-column #registration-box {
+            margin-top: 120px;
+            max-width: 600px;
+            border: 1px solid #9C9C9C;
+            background-color: #EAEAEA;
+        }
+        #registration .container #registration-row #registration-column #registration-box #registration-form {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="registration">
+        <h2 class="text-center text-white pt-5">Регистрация</h2>
+        <div class="container">
+            <div id="registration-row" class="row justify-content-center align-items-center">
+                <div id="registration-column" class="col-md-6">
+                    <div id="registration-box" class="col-md-12">
+                        <form id="registration-form" class="form" method="post" novalidate>
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <div class="form-group">
+                                {{ form.username.label }}
+                                {{ form.username }}
+                                {{ form.username.errors }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.email.label }}
+                                {{ form.email }}
+                                {{ form.email.errors }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.password1.label }}
+                                {{ form.password1 }}
+                                {{ form.password1.errors }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.password2.label }}
+                                {{ form.password2 }}
+                                {{ form.password2.errors }}
+                            </div>
+                            <button type="submit" class="btn btn-info btn-lg btn-block">Зарегистрироваться</button>
+                        </form>
+                        <p class="text-center mt-3">
+                            Уже есть аккаунт? <a href="{% url 'login' %}" class="text-info">Войти</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/inc/_modal.html ---
+{% load static %}
+
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content custom-modal-content">
+            <div class="custom-modal-left">
+                <div class="user_img"><img src="{% static 'img/fel.jpg' %}"></div>
+                <p class="user_name mt-3">{{ user.first_name }}</p>
+                <p class="user_name mt-1">{{ user.last_name }}</p>
+            </div>
+            <div class="custom-modal-right">
+                <div class="modal-header custom-modal-header">
+                    <h5 class="modal-title info_header" id="exampleModalLabel">Информация</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-container">
+                        <div>
+                            <p class="info_user">Email:</p>
+                            <p class="user_information">{{ user.email }}</p>
+                        </div>
+                        <div style="width: 100px"></div>
+                        <div>
+                            <p class="info_user">Username:</p>
+                            <p class="user_information">{{ user.username }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer custom-modal-footer">
+                    <div class="set">
+                        {# {% if user.is_authenticated %} #}
+                        {# <a class="btn_modal text-decoration-none btn_text" href="{% url 'update_user' user.pk %}">Обновить информацию</a> #}
+                        {# <a class="btn_modal_active text-decoration-none btn_text" href="{% url 'logout' %}">Выйти</a> #}
+                        {# {% endif %} #}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/inc/_header.html ---
+{% load static %}
+
+<header class="header d-flex justify-content-between align-items-center">
+    <div class="logo"><img src="/static/img/logo.svg" height="50"></div>
+    <nav class="d-flex flex-row">
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.is_staff %}
+                <a class="nav-link" href="{% url 'user_list' %}">пользователи</a>
+                <a class="nav-link" href="{% url 'backup' %}">бэкап</a>
+                <a href="{% url 'export_to_excel' %}" class="btn btn-dark w-25">Создать EXCEL документ</a>
+            {% endif %}
+        {% endif %}
+        {% if user.is_authenticated %}
+            {% if not user.is_superuser or not user.is_staff %}
+                <a class="nav-link" href="{% url 'category_list' %}">категории</a>
+                <a class="nav-link" href="{% url 'product_list' %}">продукты</a>
+                <a class="nav-link" href="{% url 'stock_list' %}">запасы</a>
+                <a class="nav-link" href="{% url 'brand_list' %}">бренды</a>
+            {% endif %}
+        {% endif %}
+        <div class="user-icon">
+            <a class="nav-link" id="profile-icon">
+                <img src="/static/img/PersonCircle.svg" height="30" alt="User Icon" class="rounded-circle" width="30">
+            </a>
+        </div>
+    </nav>
+</header>
+
+<!-- Модальное окно -->
+<div class="modal" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">Информация о профиле</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Никнейм: {{ user.username }}</p>
+                <p>Email: {{ user.email }}</p>
+                <p>{{ user.first_name }}</p>
+                <p>{{ user.last_name }}</p>
+                <p>Роль: {% if user.is_superuser %}Администратор{% else %}Менеджер{% endif %}</p>
+            </div>
+            <div class="modal-footer">
+                <a class="btn_modal text-decoration-none btn_text" href="{% url 'update_user' user.pk %}">изменить данные</a>
+                <a class="nav-link" href="{% url 'logout' %}">выйти</a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Скрипт для открытия модального окна -->
+<script>
+    document.getElementById('profile-icon').addEventListener('click', function () {
+        $('#infoModal').modal('show');
+    });
+</script>
+
+<!-- Подключите Bootstrap CSS и JS, если еще не сделано -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/inc/_footer.html ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/CRUD/brand_list.html ---
+{% extends "base.html" %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Бренды</h1>
+
+    <form method="get" class="form-inline mb-3">
+        <input type="text" name="q" class="form-control" placeholder="Поиск по имени бренда" value="{{ request.GET.q }}">
+        <button type="submit" class="btn btn-primary ml-2">Поиск</button>
+    </form>
+
+    <button class="btn btn-success mb-3" data-toggle="modal" data-target="#createModal">Добавить брэнд</button>
+
+    <ul class="list-group mb-3">
+        {% for brand in object_list %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ brand.name }}
+                <div>
+                    <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#updateModal{{ brand.id }}">Изменить</button>
+                    <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ brand.id }}">Удалить</button>
+                </div>
+            </li>
+
+            <!-- Модальное окно для изменения бренда -->
+            <div class="modal fade" id="updateModal{{ brand.id }}" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <form method="post" action="{% url 'brand_update' brand.id %}">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="updateModalLabel">Изменить брэнд</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="text" name="name" class="form-control" value="{{ brand.name }}">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно для удаления бренда -->
+            <div class="modal fade" id="deleteModal{{ brand.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel">Удаление брэнда</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Вы уверены, что хотите удалить брэнд "{{ brand.name }}"?
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{% url 'brand_delete' brand.id %}">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Нет</button>
+                                <button type="submit" class="btn btn-danger">Да, удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <li class="list-group-item">Бренды не найдены.</li>
+        {% endfor %}
+    </ul>
+
+    <div class="pagination">
+        {% if is_paginated %}
+            <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+            <div>
+                {% if page_obj.has_previous %}
+                    <a href="?q={{ request.GET.q }}&page=1" class="btn btn-link">Первая</a>
+                    <a href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}" class="btn btn-link">Назад</a>
+                {% endif %}
+                <span>Страница {{ page_obj.number }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}" class="btn btn-link">Вперед</a>
+                    <a href="?q={{ request.GET.q }}&page={{ page_obj.paginator.num_pages }}" class="btn btn-link">Последняя</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно для добавления бренда -->
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="{% url 'brand_create' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createModalLabel">Добавить брэнд</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" name="name" class="form-control" placeholder="Название брэнда">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/CRUD/stock_list.html ---
+{% extends 'base.html' %}
+{% load static %}
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Склад</h1>
+
+    <!-- Кнопка для открытия модального окна добавления продукта -->
+    <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">Добавить продукт</button>
+
+    <!-- Модальное окно для добавления продукта -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="POST" action="{% url 'stock_create' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">Добавить продукт</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="cell_number">Номер ячейки</label>
+                            <input type="text" name="cell_number" class="form-control" placeholder="Введите номер ячейки" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product">Продукт</label>
+                            <select name="product" class="form-control" required>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}">{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-primary">Добавить продукт</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Поиск по наименованию продукта -->
+    <form method="GET" class="mt-3">
+        <input type="text" name="q" placeholder="Поиск по наименованию" class="form-control" value="{{ request.GET.q }}">
+        <button type="submit" class="btn btn-secondary mt-2">Поиск</button>
+    </form>
+
+    <!-- Таблица со всеми ячейками и продуктами -->
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Ячейка</th>
+                <th>Продукт</th>
+                <th>Количество</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in object_list %}
+            <tr>
+                <td>{{ stock.cell_number }}</td>
+                <td>{{ stock.product.name }}</td>
+                <td>{{ stock.product.quantity }}</td>
+                <td>
+                    <button class="btn btn-warning" data-toggle="modal" data-target="#editModal{{ stock.id }}">Изменить</button>
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ stock.id }}">Удалить</button>
+                </td>
+            </tr>
+
+            <!-- Модальное окно для изменения продукта -->
+            <div class="modal fade" id="editModal{{ stock.id }}" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <form method="POST" action="{% url 'stock_update' stock.id %}">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title">Изменить продукт</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="cell_number">Номер ячейки</label>
+                                    <input type="text" name="cell_number" class="form-control" value="{{ stock.cell_number }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product">Продукт</label>
+                                    <select name="product" class="form-control" required>
+                                        {% for product in products %}
+                                            <option value="{{ product.id }}" {% if product.id == stock.product.id %}selected{% endif %}>{{ product.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно для удаления продукта -->
+            <div class="modal fade" id="deleteModal{{ stock.id }}" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Подтверждение удаления</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Вы уверены, что хотите удалить продукт "{{ stock.product.name }}"?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="POST" action="{% url 'stock_delete' stock.id %}">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Нет</button>
+                                <button type="submit" class="btn btn-danger">Да, удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+{% endblock %}
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/CRUD/category_list.html ---
+{% extends 'base.html' %}
+
+{% block style %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <div class="container">
+        <h1>Категории</h1>
+
+        <form method="get" class="form-inline mb-3">
+            <input type="text" name="q" class="form-control" placeholder="Поиск по имени категории"
+                   value="{{ request.GET.q }}">
+            <button type="submit" class="btn btn-primary">Поиск</button>
+        </form>
+
+        <button class="btn btn-success mb-3" data-toggle="modal" data-target="#createModal">Добавить категорию</button>
+
+        <ul class="list-group">
+            {% for category in object_list %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ category.name }}
+                    <div>
+                        <button class="btn btn-warning btn-sm" data-toggle="modal"
+                                data-target="#updateModal{{ category.id }}">Изменить
+                        </button>
+                        <button class="btn btn-danger btn-sm" data-toggle="modal"
+                                data-target="#deleteModal{{ category.id }}">Удалить
+                        </button>
+                    </div>
+                </li>
+
+                <!-- Модальное окно для изменения категории -->
+                <div class="modal fade" id="updateModal{{ category.id }}" tabindex="-1" role="dialog"
+                     aria-labelledby="updateModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <form method="post" action="{% url 'category_update' category.id %}">
+                                {% csrf_token %}
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="updateModalLabel">Изменить категорию</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="text" name="name" class="form-control" value="{{ category.name }}">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Модальное окно для удаления категории -->
+                <div class="modal fade" id="deleteModal{{ category.id }}" tabindex="-1" role="dialog"
+                     aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Удаление категории</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                Вы уверены, что хотите удалить категорию "{{ category.name }}"?
+                            </div>
+                            <div class="modal-footer">
+                                <form method="post" action="{% url 'category_delete' category.id %}">
+                                    {% csrf_token %}
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Нет</button>
+                                    <button type="submit" class="btn btn-danger">Да, удалить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <li class="list-group-item">Категории не найдены.</li>
+            {% endfor %}
+        </ul>
+
+        <div class="pagination">
+            {% if is_paginated %}
+                <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                <div>
+                    {% if page_obj.has_previous %}
+                        <a href="?q={{ request.GET.q }}&page=1" class="btn btn-link">Первая</a>
+                        <a href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}" class="btn btn-link">Назад</a>
+                    {% endif %}
+                    <span>Страница {{ page_obj.number }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}" class="btn btn-link">Вперед</a>
+                        <a href="?q={{ request.GET.q }}&page={{ page_obj.paginator.num_pages }}" class="btn btn-link">Последняя</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления категории -->
+    <div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" action="{% url 'category_create' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createModalLabel">Добавить категорию</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" name="name" class="form-control" placeholder="Название категории">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-primary">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/CRUD/create_form.html ---
+{% extends 'base.html' %}
+
+
+{% block content %}
+    
+    <div class="container mt-5">
+        <h1>Создание продукта</h1>
+        <form method="post" enctype="multipart/form-data" class="mb-4">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-primary" type="submit">Создать продукт</button>
+        </form>
+    </div>
+
+{% endblock %}
+
+
+--- Содержимое файла: /Users/alinakonuhova/PycharmProjects/KorShop/templates/CRUD/product_list.html ---
+{% extends 'base.html' %}
+{% load static %}
+
+{% block style %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1>Продукты</h1>
+        <button class="btn btn-success mb-3" data-toggle="modal" data-target="#createModal">Добавить продукт</button>
+
+        <form method="GET" class="mb-4">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" name="q" placeholder="Поиск по имени продукта"
+                       value="{{ request.GET.q }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Поиск</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h5>Категории:</h5>
+                {% for category in categories %}
+                    <a href="?category={{ category.id }}&q={{ request.GET.q }}&brands={{ request.GET.brands|join:',' }}"
+                       class="btn btn-info btn-sm mr-2">{{ category.name }}</a>
+                {% endfor %}
+
+                <h5>Бренды:</h5>
+                {% for brand in brands %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="brands" value="{{ brand.id }}"
+                               id="brand{{ brand.id }}"
+                               {% if brand.id|stringformat:"s" in request.GET.brands %}checked{% endif %}>
+                        <label class="form-check-label" for="brand{{ brand.id }}">{{ brand.name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-4">
+                <h5>Цена:</h5>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="price_min" placeholder="От"
+                           value="{{ request.GET.price_min }}">
+                    <input type="number" class="form-control" name="price_max" placeholder="До"
+                           value="{{ request.GET.price_max }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-secondary">Применить фильтры</button>
+        </form>
+
+        <div class="row">
+            {% for product in object_list %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">
+                                <strong>Цена:</strong> {{ product.price }}<br>
+                                <strong>Артикул:</strong> {{ product.article }}<br>
+                                <strong>Бренд:</strong> {{ product.brand.name }}<br>
+                                <strong>Категория:</strong> {{ product.category.name }}<br>
+                                <strong>Количество:</strong> {{ product.quantity }}<br>
+                                <strong>Описание:</strong> {{ product.description }}<br>
+                            </p>
+                            <button class="btn btn-warning" data-toggle="modal"
+                                    data-target="#updateModal{{ product.id }}">Изменить
+                            </button>
+                            <button class="btn btn-danger" data-toggle="modal"
+                                    data-target="#deleteModal{{ product.id }}">Удалить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Модальное окно для изменения продукта -->
+                <div class="modal fade" id="updateModal{{ product.id }}" tabindex="-1" role="dialog"
+                     aria-labelledby="updateModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <form method="post" action="{% url 'product_update' product.id %}"
+                                  enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="updateModalLabel">Изменить продукт</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="text" name="name" class="form-control" value="{{ product.name }}"
+                                           required>
+                                    <input type="number" name="price" class="form-control mt-2"
+                                           value="{{ product.price }}" required>
+                                    <input type="text" name="article" class="form-control mt-2"
+                                           value="{{ product.article }}" readonly>
+                                    <input type="number" name="quantity" class="form-control mt-2"
+                                           value="{{ product.quantity }}" required>
+                                    <textarea name="description" class="form-control mt-2" placeholder="Описание"
+                                              required>{{ product.description }}</textarea>
+                                    <input type="file" name="image" class="form-control mt-2">
+                                    <select name="brand" class="form-control mt-2" required>
+                                        <option value="">Выберите бренд</option>
+                                        {% for brand in brands %}
+                                            <option value="{{ brand.id }}"
+                                                    {% if brand.id == product.brand.id %}selected{% endif %}>{{ brand.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select name="category" class="form-control mt-2" required>
+                                        <option value="">Выберите категорию</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}"
+                                                    {% if category.id == product.category.id %}selected{% endif %}>{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Модальное окно для удаления продукта -->
+                <div class="modal fade" id="deleteModal{{ product.id }}" tabindex="-1" role="dialog"
+                     aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Удаление продукта</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                Вы уверены, что хотите удалить продукт "{{ product.name }}"?
+                            </div>
+                            <div class="modal-footer">
+                                <form method="post" action="{% url 'product_delete' product.id %}">
+                                    {% csrf_token %}
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Нет</button>
+                                    <button type="submit" class="btn btn-danger">Да, удалить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-warning" role="alert">
+                        Продукты не найдены.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            {% if is_paginated %}
+                <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                <nav>
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?q={{ request.GET.q }}&category={{ request.GET.category }}&brands={{ request.GET.brands|join:',' }}&page=1">Первая</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?q={{ request.GET.q }}&category={{ request.GET.category }}&brands={{ request.GET.brands|join:',' }}&page={{ page_obj.previous_page_number }}">Назад</a>
+                            </li>
+                        {% endif %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_obj.number }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?q={{ request.GET.q }}&category={{ request.GET.category }}&brands={{ request.GET.brands|join:',' }}&page={{ page_obj.next_page_number }}">Вперед</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?q={{ request.GET.q }}&category={{ request.GET.category }}&brands={{ request.GET.brands|join:',' }}&page={{ page_obj.paginator.num_pages }}">Последняя</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления продукта -->
+    <div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" action="{% url 'product_create' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createModalLabel">Добавить продукт</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" name="name" class="form-control" placeholder="Название продукта" required>
+                        <input type="number" name="price" class="form-control mt-2" placeholder="Цена" required>
+                        <input type="number" name="quantity" class="form-control mt-2" placeholder="Количество"
+                               required>
+                        <textarea name="description" class="form-control mt-2" placeholder="Описание"
+                                  required></textarea>
+                        <input type="file" name="image" class="form-control mt-2">
+                        <select name="brand" class="form-control mt-2" required>
+                            <option value="">Выберите бренд</option>
+                            {% for brand in brands %}
+                                <option value="{{ brand.id }}">{{ brand.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="category" class="form-control mt-2" required>
+                            <option value="">Выберите категорию</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-primary">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+
+
