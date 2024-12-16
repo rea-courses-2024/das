@@ -1,4 +1,4 @@
-name: Code collector
+name: Check Code Style
 
 on:
   push:
@@ -10,16 +10,16 @@ on:
       - vetka
 
 jobs:
-  collect_code_project:
+  checkstyle_project:
     runs-on: ubuntu-latest
     steps:
       - name: Git clone repo
         uses: actions/checkout@v2
 
-      - name: Set version Python
-        uses: actions/setup-python
+      - name: Set python version
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.9.6'
+          python-version: '3.12.3'
 
       - name: Install dependencies
         run: |
